@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Signal — Health Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F3EC;
+  --paper-soft:#EFEAE0;
+  --card:#FFFFFF;
+  --ink:#20291F;
+  --ink-soft:#55605A;
+  --ink-faint:#93998F;
+  --forest:#2F6F5E;
+  --forest-soft:rgba(47,111,94,.11);
+  --amber:#C1873B;
+  --amber-soft:rgba(193,135,59,.13);
+  --brick:#AE3E2B;
+  --brick-soft:rgba(174,62,43,.11);
+  --line:rgba(32,41,31,.11);
+  --shadow:0 1px 2px rgba(32,41,31,.06), 0 10px 26px rgba(32,41,31,.06);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0;}
+body{
+  background:var(--paper); color:var(--ink); font-family:'DM Sans',sans-serif;
+  font-size:15px; line-height:1.5; padding-bottom:150px; min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:'Newsreader',serif; font-weight:600; margin:0; letter-spacing:-0.01em;}
+.mono{font-variant-numeric:tabular-nums;}
+button{font-family:inherit;}
+@media (prefers-reduced-motion:reduce){ *{animation:none !important; transition:none !important;} }
+
+/* ---- Header ---- */
+header.top{
+  position:sticky; top:0; z-index:40; background:rgba(246,243,236,.92); backdrop-filter:blur(8px);
+  padding:16px 18px 12px; display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex; align-items:center; gap:9px;}
+.brand svg{width:26px; height:26px; flex-shrink:0;}
+.brand-name{font-family:'Newsreader',serif; font-weight:600; font-size:19px;}
+#headerSub{font-size:11px; color:var(--ink-faint); margin-top:1px;}
+.gear-btn{
+  background:none; border:none; color:var(--ink-soft); font-size:20px; cursor:pointer;
+  width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px;
+}
+.gear-btn:active{background:var(--paper-soft);}
+
+main{max-width:560px; margin:0 auto; padding:16px 16px 8px;}
+.view{display:none;}
+.view.active{display:block; animation:fadeIn .22s ease;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+/* ---- Cards ---- */
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px;
+  box-shadow:var(--shadow); margin-bottom:14px;
+}
+.card-eyebrow{
+  font-size:10.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--forest);
+  margin-bottom:6px;
+}
+.card-title{font-size:17px; font-weight:600; font-family:'Newsreader',serif; margin-bottom:2px;}
+
+/* ---- Wave signature ---- */
+.wave-divider{width:100%; height:22px; margin:2px 0 14px; opacity:.55;}
+.wave-divider path{stroke:var(--forest); stroke-width:1.6; fill:none;}
+
+/* ---- Banner ---- */
+.banner{
+  border-radius:14px; padding:14px 16px; margin-bottom:14px; display:flex; align-items:center; gap:12px;
+}
+.banner.warn{background:var(--amber-soft); border:1px solid rgba(193,135,59,.25);}
+.banner.ok{background:var(--forest-soft); border:1px solid rgba(47,111,94,.22);}
+.banner .txt{flex:1; font-size:13.5px; color:var(--ink);}
+.banner .txt b{font-weight:600;}
+.banner button{
+  background:var(--ink); color:var(--paper); border:none; border-radius:9px; padding:8px 13px;
+  font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;
+}
+
+/* ---- Stat grid ---- */
+.stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
+.stat-box{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:13px 14px; box-shadow:var(--shadow);}
+.stat-box .label{font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-faint); font-weight:700; margin-bottom:5px;}
+.stat-box .value{font-size:21px; font-weight:600; font-family:'Newsreader',serif;}
+.stat-box .sub{font-size:11.5px; color:var(--ink-faint); margin-top:2px;}
+
+/* ---- Buttons ---- */
+.btn{border:none; border-radius:12px; padding:13px 18px; font-size:14.5px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif;}
+.btn-block{width:100%; display:block; text-align:center;}
+.btn-primary{background:var(--forest); color:#fff;}
+.btn-secondary{background:var(--paper-soft); color:var(--ink); border:1px solid var(--line);}
+.btn-ghost{background:none; color:var(--ink-soft); padding:10px 4px;}
+.btn-brick{background:var(--brick); color:#fff;}
+.btn:active{transform:scale(.98);}
+
+/* ---- Fields ---- */
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); margin-bottom:6px;}
+.field input[type=text], .field input[type=number], .field input[type=date], .field input[type=time],
+.field select, .field textarea{
+  width:100%; border:1.5px solid var(--line); border-radius:10px; padding:11px 12px; font-size:14.5px;
+  font-family:'DM Sans',sans-serif; background:var(--paper-soft); color:var(--ink); outline:none;
+}
+.field textarea{min-height:70px; resize:vertical;}
+.field input:focus, .field select:focus, .field textarea:focus{border-color:var(--forest);}
+.field-row{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.field-hint{font-size:12px; color:var(--ink-faint); margin-top:-6px; margin-bottom:14px;}
+
+/* ---- Chip select ---- */
+.chip-row{display:flex; flex-wrap:wrap; gap:7px;}
+.chip{
+  padding:8px 13px; border-radius:999px; border:1.5px solid var(--line); background:var(--paper-soft);
+  font-size:12.5px; font-weight:600; color:var(--ink-soft); cursor:pointer; user-select:none;
+}
+.chip.active{background:var(--forest); border-color:var(--forest); color:#fff;}
+.chip.active.sev-mild{background:var(--amber); border-color:var(--amber);}
+.chip.active.sev-severe{background:var(--brick); border-color:var(--brick);}
+
+/* ---- Slider ---- */
+.slider-row{display:flex; align-items:center; gap:12px;}
+.slider-row input[type=range]{flex:1; accent-color:var(--forest);}
+.slider-val{font-family:'Newsreader',serif; font-weight:600; font-size:18px; min-width:26px; text-align:center;}
+
+/* ---- List rows ---- */
+.list-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 4px;
+  border-bottom:1px solid var(--line); cursor:pointer;
+}
+.list-row:last-child{border-bottom:none;}
+.list-row .left .name{font-weight:600; font-size:14.5px;}
+.list-row .left .meta{font-size:12px; color:var(--ink-faint); margin-top:2px;}
+.list-row .right{text-align:right;}
+.list-row .right .amt{font-weight:600; font-size:14px; font-family:'Newsreader',serif;}
+.list-row .right .tag{font-size:11px; margin-top:2px;}
+.tag-pill{display:inline-block; padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:700;}
+.tag-none{background:var(--forest-soft); color:var(--forest);}
+.tag-mild{background:var(--amber-soft); color:#8a5f22;}
+.tag-severe{background:var(--brick-soft); color:var(--brick);}
+
+.empty-state{text-align:center; padding:34px 14px; color:var(--ink-faint);}
+.empty-state .glyph{font-size:26px; margin-bottom:8px; opacity:.5;}
+.empty-state .msg{font-size:13.5px;}
+
+/* ---- FAB ---- */
+.fab{
+  position:fixed; left:16px; right:16px; bottom:78px; z-index:45; max-width:528px; margin:0 auto;
+  background:var(--brick); color:#fff; border:none; border-radius:16px; padding:15px;
+  font-size:15px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:9px;
+  box-shadow:0 8px 24px rgba(174,62,43,.35); cursor:pointer;
+}
+.fab .pulse{
+  width:9px; height:9px; border-radius:50%; background:#fff; animation:pulse 1.8s infinite ease-in-out;
+}
+@keyframes pulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.4; transform:scale(1.5);}}
+
+/* ---- Bottom nav ---- */
+nav.bottom{
+  position:fixed; bottom:0; left:0; right:0; background:var(--card); border-top:1px solid var(--line);
+  display:flex; z-index:50; padding-bottom:env(safe-area-inset-bottom);
+}
+nav.bottom button{
+  flex:1; background:none; border:none; padding:10px 4px 8px; display:flex; flex-direction:column;
+  align-items:center; gap:3px; color:var(--ink-faint); font-size:10.5px; font-weight:600; cursor:pointer;
+}
+nav.bottom button .ico{font-size:18px; font-family:'Newsreader',serif;}
+nav.bottom button.active{color:var(--forest);}
+
+/* ---- Overlay / sheet ---- */
+.overlay{
+  position:fixed; inset:0; background:rgba(32,41,31,.42); z-index:100; display:none;
+  align-items:flex-end; justify-content:center;
+}
+.overlay.open{display:flex;}
+.sheet{
+  background:var(--paper); width:100%; max-width:560px; max-height:88vh; overflow-y:auto;
+  border-radius:22px 22px 0 0; padding:20px 18px calc(24px + env(safe-area-inset-bottom));
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(24px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+.sheet h2{font-size:20px; margin-bottom:16px;}
+
+/* ---- Toast ---- */
+#toast{
+  position:fixed; bottom:150px; left:50%; transform:translateX(-50%) translateY(12px); z-index:200;
+  background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:999px; font-size:13px;
+  font-weight:600; opacity:0; pointer-events:none; transition:all .25s ease;
+}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+/* ---- Section divider in forms ---- */
+.form-section-title{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--forest);
+  margin:22px 0 10px;
+}
+.form-section-title:first-child{margin-top:0;}
+
+/* ---- Print ---- */
+@media print{
+  header.top, nav.bottom, .fab, .no-print{display:none !important;}
+  body{padding:0; background:#fff;}
+  .view{display:none !important;}
+  #view-report.print-active{display:block !important;}
+  .card{box-shadow:none; border:1px solid #ccc;}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" fill="none"><path d="M2 16c3 0 3-9 6-9s3 18 6 18 3-18 6-18 3 9 6 9 3-9 6-9" stroke="#2F6F5E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div><div class="brand-name">Signal</div><div id="headerSub">Today</div></div>
+  </div>
+  <button class="gear-btn" id="openSettings">⚙</button>
+</header>
+
+<main>
+
+  <!-- TODAY -->
+  <div class="view active" id="view-today">
+    <div id="todayBanner"></div>
+
+    <svg class="wave-divider" viewBox="0 0 400 22" preserveAspectRatio="none"><path d="M0 11c15 0 15-9 30-9s15 18 30 18 15-18 30-18 15 9 30 9 15-9 30-9 15 18 30 18 15-18 30-18 15 9 30 9 15-9 30-9 15 18 30 18 15-18 30-18"/></svg>
+
+    <div class="stat-grid" id="todaySnapshot"></div>
+
+    <div class="card">
+      <div class="card-eyebrow">Last episode</div>
+      <div id="lastEpisode"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-eyebrow">Recent entries</div>
+      <div id="todayRecentList"></div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="view" id="view-history">
+    <div class="card" style="padding:6px 16px;">
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <!-- TRENDS -->
+  <div class="view" id="view-trends">
+    <div class="card">
+      <div class="card-eyebrow">Sleep quality — last 30 days</div>
+      <div id="chartSleep"></div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Headaches — last 30 days</div>
+      <div id="chartHeadache"></div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Blood pressure &amp; heart rate</div>
+      <div id="chartVitals"></div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Episodes — last 90 days</div>
+      <div id="chartEpisodes"></div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Patterns worth mentioning</div>
+      <div id="insightsList"></div>
+      <div class="field-hint" style="margin-top:10px; margin-bottom:0;">Descriptive only — not a diagnosis. Useful things to raise with your doctor.</div>
+    </div>
+  </div>
+
+  <!-- REPORT -->
+  <div class="view" id="view-report">
+    <div class="card no-print">
+      <div class="card-eyebrow">Date range</div>
+      <div class="field-row" style="margin-bottom:0;">
+        <div class="field" style="margin-bottom:0;"><label>From</label><input type="date" id="repFrom"></div>
+        <div class="field" style="margin-bottom:0;"><label>To</label><input type="date" id="repTo"></div>
+      </div>
+      <div class="btn-row" style="display:flex; gap:8px; margin-top:14px;">
+        <button class="btn btn-primary" style="flex:1" id="repBuild">Build report</button>
+      </div>
+      <div class="btn-row" style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn btn-secondary" style="flex:1" id="repPrint">Print / Save PDF</button>
+        <button class="btn btn-secondary" style="flex:1" id="repShare">Copy summary</button>
+      </div>
+    </div>
+    <div id="reportOutput"></div>
+  </div>
+
+</main>
+
+<button class="fab" id="fabEpisode"><span class="pulse"></span>⚡ Log Episode Now</button>
+
+<nav class="bottom">
+  <button class="navbtn active" data-view="today"><span class="ico">◆</span>Today</button>
+  <button class="navbtn" data-view="history"><span class="ico">▤</span>History</button>
+  <button class="navbtn" data-view="trends"><span class="ico">∿</span>Trends</button>
+  <button class="navbtn" data-view="report"><span class="ico">▧</span>Report</button>
+</nav>
+
+<!-- DAILY LOG SHEET -->
+<div class="overlay" id="overlayLog">
+  <div class="sheet">
+    <h2>Daily log</h2>
+    <div class="field"><label>Date</label><input type="date" id="logDate"></div>
+
+    <div class="form-section-title">Sleep</div>
+    <div class="field-row">
+      <div class="field"><label>Bed time</label><input type="time" id="bedTime"></div>
+      <div class="field"><label>Wake time</label><input type="time" id="wakeTime"></div>
+    </div>
+    <div class="field">
+      <label>Sleep quality (1–10)</label>
+      <div class="slider-row"><input type="range" min="1" max="10" value="5" id="sleepQuality"><span class="slider-val" id="sleepQualityVal">5</span></div>
+    </div>
+    <div class="field">
+      <label>Snoring</label>
+      <div class="chip-row" id="snoringChips">
+        <div class="chip" data-val="none">None</div><div class="chip" data-val="mild">Mild</div>
+        <div class="chip" data-val="moderate">Moderate</div><div class="chip" data-val="severe">Severe</div>
+      </div>
+    </div>
+
+    <div class="form-section-title">Vitals</div>
+    <div class="field-row">
+      <div class="field"><label>BP systolic</label><input type="number" id="bpSys" placeholder="e.g. 128"></div>
+      <div class="field"><label>BP diastolic</label><input type="number" id="bpDia" placeholder="e.g. 82"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Heart rate</label><input type="number" id="hr" placeholder="bpm"></div>
+      <div class="field"><label>Oxygen % (SpO₂)</label><input type="number" id="spo2" placeholder="e.g. 96"></div>
+    </div>
+
+    <div class="form-section-title">Headache</div>
+    <div class="field">
+      <label>Severity</label>
+      <div class="chip-row" id="headacheSevChips">
+        <div class="chip" data-val="none">None</div><div class="chip" data-val="mild">Mild</div>
+        <div class="chip" data-val="moderate">Moderate</div><div class="chip" data-val="severe">Severe</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Location</label>
+      <div class="chip-row" id="headacheLocChips">
+        <div class="chip" data-val="Left temple">Left temple</div><div class="chip" data-val="Left eye">Left eye</div>
+        <div class="chip" data-val="Left neck">Left neck</div><div class="chip" data-val="Back of head">Back of head</div>
+        <div class="chip" data-val="Base of skull">Base of skull</div><div class="chip" data-val="Other">Other</div>
+      </div>
+    </div>
+
+    <div class="form-section-title">Visual &amp; wave symptoms</div>
+    <div class="field">
+      <label>Symptoms today</label>
+      <div class="chip-row" id="visualChips">
+        <div class="chip" data-val="Tunnel vision">Tunnel vision</div><div class="chip" data-val="Blurry vision">Blurry vision</div>
+        <div class="chip" data-val="Floaters">Floaters</div><div class="chip" data-val="Wave sensation">Wave sensation</div>
+      </div>
+    </div>
+
+    <div class="form-section-title">Heart</div>
+    <div class="field">
+      <div class="chip-row" id="heartChips">
+        <div class="chip" data-val="racing">Racing</div><div class="chip" data-val="skipped">Skipped beats</div>
+        <div class="chip" data-val="chest">Chest discomfort</div>
+      </div>
+    </div>
+
+    <div class="form-section-title">Energy &amp; stress</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Energy (1–10)</label>
+        <div class="slider-row"><input type="range" min="1" max="10" value="5" id="energy"><span class="slider-val" id="energyVal">5</span></div>
+      </div>
+      <div class="field">
+        <label>Stress (1–10)</label>
+        <div class="slider-row"><input type="range" min="1" max="10" value="5" id="stress"><span class="slider-val" id="stressVal">5</span></div>
+      </div>
+    </div>
+
+    <div class="field"><label>Notes</label><textarea id="logNotes" placeholder="Anything else worth noting"></textarea></div>
+
+    <button class="btn btn-primary btn-block" id="saveLog">Save today's log</button>
+  </div>
+</div>
+
+<!-- EPISODE SHEET -->
+<div class="overlay" id="overlayEpisode">
+  <div class="sheet">
+    <h2>Log an episode</h2>
+    <div class="field-hint" style="margin-top:-10px;">Fill in what you can right now — you can add detail later.</div>
+    <div class="field-row">
+      <div class="field"><label>Date</label><input type="date" id="epDate"></div>
+      <div class="field"><label>Time</label><input type="time" id="epTime"></div>
+    </div>
+    <div class="field"><label>What were you doing?</label><input type="text" id="epDoing" placeholder="e.g. sitting at desk, walking"></div>
+    <div class="field-row">
+      <div class="field"><label>Heart rate (if known)</label><input type="number" id="epHr" placeholder="bpm"></div>
+      <div class="field"><label>Duration (minutes)</label><input type="number" id="epDuration" placeholder="e.g. 3"></div>
+    </div>
+    <div class="field">
+      <label>Vision changes</label>
+      <div class="chip-row" id="epVisionChips">
+        <div class="chip" data-val="Tunnel vision">Tunnel vision</div><div class="chip" data-val="Wave sensation">Wave sensation</div>
+        <div class="chip" data-val="Blurry vision">Blurry vision</div><div class="chip" data-val="None">None</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Headache with it?</label>
+      <div class="chip-row" id="epHeadacheChips">
+        <div class="chip" data-val="none">No</div><div class="chip" data-val="mild">Mild</div>
+        <div class="chip" data-val="moderate">Moderate</div><div class="chip" data-val="severe">Severe</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Could you talk normally?</label>
+      <div class="chip-row" id="epTalkChips">
+        <div class="chip" data-val="yes">Yes</div><div class="chip" data-val="no">No</div><div class="chip" data-val="unsure">Not sure</div>
+      </div>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="epNotes" placeholder="Anything else — how it started, how it ended"></textarea></div>
+    <button class="btn btn-brick btn-block" id="saveEpisode">Save episode</button>
+    <div class="field-hint" style="text-align:center; margin-top:12px; margin-bottom:0;">Sudden severe headache, new weakness, slurred speech, facial droop, vision loss, or another seizure → seek emergency care, don't wait to log this.</div>
+  </div>
+</div>
+
+<!-- ENTRY / EPISODE DETAIL SHEET -->
+<div class="overlay" id="overlayDetail">
+  <div class="sheet">
+    <h2 id="detailTitle">Detail</h2>
+    <div id="detailBody"></div>
+  </div>
+</div>
+
+<!-- SETTINGS SHEET -->
+<div class="overlay" id="overlaySettings">
+  <div class="sheet">
+    <h2>Settings</h2>
+
+    <div class="form-section-title">Reminders</div>
+    <div class="field">
+      <label>Daily nudge</label>
+      <div class="chip-row" id="reminderChips">
+        <div class="chip" data-val="off">Off</div><div class="chip" data-val="on">On</div>
+      </div>
+    </div>
+    <div class="field" id="reminderTimeField">
+      <label>Remind me if I haven't logged by</label>
+      <input type="time" id="reminderTime" value="19:00">
+    </div>
+    <div class="field-hint">This app is a single file with no server, so it can only nudge you while it's actually open — it can't wake your phone in the background. For a reliable daily nudge, also set a recurring phone alarm; this in-app reminder is a backup for whenever you do open it.</div>
+
+    <div class="form-section-title">Data</div>
+    <button class="btn btn-secondary btn-block" id="exportData" style="margin-bottom:10px;">Export backup (JSON)</button>
+    <button class="btn btn-secondary btn-block" id="wipeData" style="margin-bottom:10px;">Erase all data</button>
+    <div class="field-hint">Everything is stored only on this device, in this browser. Export a backup now and then so you don't lose it.</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ============================================================
+// STORAGE
+// ============================================================
+const K = { ENTRIES:'sig_entries', EPISODES:'sig_episodes', SETTINGS:'sig_settings' };
+function load(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
+function save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+let entries = load(K.ENTRIES, {});     // keyed by date 'YYYY-MM-DD'
+let episodes = load(K.EPISODES, []);   // array
+let settings = Object.assign({ reminderOn:false, reminderTime:'19:00', lastReminderDate:null }, load(K.SETTINGS, {}));
+
+function persistEntries(){ save(K.ENTRIES, entries); }
+function persistEpisodes(){ save(K.EPISODES, episodes); }
+function persistSettings(){ save(K.SETTINGS, settings); }
+
+// ============================================================
+// HELPERS
+// ============================================================
+function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtShortDate(iso){ if(!iso) return '—'; const d=new Date(iso+'T00:00:00'); return d.toLocaleDateString('en-ZA',{day:'numeric',month:'short'}); }
+function fmtDateFull(iso){ if(!iso) return '—'; const d=new Date(iso+'T00:00:00'); return d.toLocaleDateString('en-ZA',{weekday:'short',day:'numeric',month:'short',year:'numeric'}); }
+function daysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(window._toastTimer); window._toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+function openOverlay(id){ document.getElementById(id).classList.add('open'); }
+function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(ov=>{
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.classList.remove('open'); });
+});
+
+function sevTag(sev){
+  if(!sev || sev==='none') return `<span class="tag-pill tag-none">None</span>`;
+  if(sev==='mild') return `<span class="tag-pill tag-mild">Mild</span>`;
+  if(sev==='moderate') return `<span class="tag-pill tag-mild">Moderate</span>`;
+  return `<span class="tag-pill tag-severe">Severe</span>`;
+}
+
+// Chip group helper — returns {get(), set(vals), el}
+function chipGroup(containerId, multi){
+  const el = document.getElementById(containerId);
+  const chips = () => Array.from(el.querySelectorAll('.chip'));
+  chips().forEach(c=>{
+    c.addEventListener('click', ()=>{
+      if(multi){
+        c.classList.toggle('active');
+      } else {
+        chips().forEach(x=>x.classList.remove('active'));
+        c.classList.add('active');
+      }
+    });
+  });
+  return {
+    get(){ return chips().filter(c=>c.classList.contains('active')).map(c=>c.dataset.val); },
+    set(vals){
+      if(!Array.isArray(vals)) vals = vals ? [vals] : [];
+      chips().forEach(c=>c.classList.toggle('active', vals.includes(c.dataset.val)));
+    },
+    clear(){ chips().forEach(c=>c.classList.remove('active')); }
+  };
+}
+const snoringGroup = chipGroup('snoringChips', false);
+const headacheSevGroup = chipGroup('headacheSevChips', false);
+const headacheLocGroup = chipGroup('headacheLocChips', true);
+const visualGroup = chipGroup('visualChips', true);
+const heartGroup = chipGroup('heartChips', true);
+const epVisionGroup = chipGroup('epVisionChips', true);
+const epHeadacheGroup = chipGroup('epHeadacheChips', false);
+const epTalkGroup = chipGroup('epTalkChips', false);
+const reminderGroup = chipGroup('reminderChips', false);
+
+// Sliders
+['sleepQuality','energy','stress'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', e=>{
+    document.getElementById(id+'Val').textContent = e.target.value;
+  });
+});
+
+// ============================================================
+// VIEW ROUTING
+// ============================================================
+const views = ['today','history','trends','report'];
+function showView(name){
+  views.forEach(v=> document.getElementById('view-'+v).classList.toggle('active', v===name));
+  document.querySelectorAll('.navbtn').forEach(b=> b.classList.toggle('active', b.dataset.view===name));
+  const subs = { today:'Today', history:'History', trends:'Trends', report:'Report' };
+  document.getElementById('headerSub').textContent = subs[name] || '';
+  if(name==='today') renderToday();
+  if(name==='history') renderHistory();
+  if(name==='trends') renderTrends();
+}
+document.querySelectorAll('.navbtn').forEach(b=>{
+  b.addEventListener('click', ()=> showView(b.dataset.view));
+});
+document.getElementById('openSettings').addEventListener('click', ()=>{
+  reminderGroup.set(settings.reminderOn ? 'on' : 'off');
+  document.getElementById('reminderTime').value = settings.reminderTime;
+  document.getElementById('reminderTimeField').style.display = settings.reminderOn ? 'block':'none';
+  openOverlay('overlaySettings');
+});
+
+// ============================================================
+// TODAY VIEW
+// ============================================================
+function renderToday(){
+  const t = todayISO();
+  const todayEntry = entries[t];
+  const banner = document.getElementById('todayBanner');
+  if(!todayEntry){
+    banner.innerHTML = `<div class="banner warn"><div class="txt"><b>No entry yet today.</b> Takes under a minute.</div><button id="bannerLogBtn">Log today</button></div>`;
+    document.getElementById('bannerLogBtn').addEventListener('click', openLogSheet);
+  } else {
+    banner.innerHTML = `<div class="banner ok"><div class="txt"><b>Today is logged.</b> You can still edit it below.</div><button id="bannerEditBtn">Edit</button></div>`;
+    document.getElementById('bannerEditBtn').addEventListener('click', openLogSheet);
+  }
+
+  const dates = Object.keys(entries).sort();
+  const lastDate = dates.filter(d=>d!==t).pop();
+  const lastEntry = lastDate ? entries[lastDate] : null;
+  const snap = document.getElementById('todaySnapshot');
+  snap.innerHTML = `
+    <div class="stat-box">
+      <div class="label">Last night's sleep</div>
+      <div class="value mono">${todayEntry && todayEntry.sleepQuality ? todayEntry.sleepQuality+'/10' : (lastEntry && lastEntry.sleepQuality ? lastEntry.sleepQuality+'/10' : '—')}</div>
+      <div class="sub">${todayEntry && todayEntry.snoring ? 'Snoring: '+todayEntry.snoring : (lastEntry && lastEntry.snoring ? 'Snoring: '+lastEntry.snoring : '')}</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">Last BP / HR</div>
+      <div class="value mono">${lastVitalsText()}</div>
+      <div class="sub">${lastDate ? fmtShortDate(lastDate) : ''}</div>
+    </div>`;
+
+  const le = [...episodes].sort((a,b)=>b.timestamp.localeCompare(a.timestamp))[0];
+  document.getElementById('lastEpisode').innerHTML = le
+    ? `<div style="font-size:14px;"><b>${fmtDateFull(le.timestamp.slice(0,10))}</b> at ${le.timestamp.slice(11,16)}</div>
+       <div style="font-size:12.5px; color:var(--ink-faint); margin-top:3px;">${[le.doing, le.duration?le.duration+' min':null].filter(Boolean).join(' · ')||'No detail added'}</div>`
+    : `<div style="font-size:13.5px; color:var(--ink-faint);">No episodes logged. Good.</div>`;
+
+  const recentDates = dates.slice(-6).reverse();
+  const listEl = document.getElementById('todayRecentList');
+  if(!recentDates.length){
+    listEl.innerHTML = `<div class="empty-state"><div class="msg">No entries yet.</div></div>`;
+  } else {
+    listEl.innerHTML = recentDates.map(d=>{
+      const e = entries[d];
+      return `<div class="list-row" data-date="${d}">
+        <div class="left"><div class="name">${fmtShortDate(d)}</div><div class="meta">Sleep ${e.sleepQuality||'—'}/10 · ${e.bpSys?e.bpSys+'/'+e.bpDia:'BP —'}</div></div>
+        <div class="right">${sevTag(e.headacheSeverity)}</div>
+      </div>`;
+    }).join('');
+  }
+}
+function lastVitalsText(){
+  const dates = Object.keys(entries).sort().reverse();
+  for(const d of dates){
+    const e = entries[d];
+    if(e.bpSys || e.hr) return `${e.bpSys&&e.bpDia ? e.bpSys+'/'+e.bpDia : '—'}${e.hr?' · '+e.hr+'bpm':''}`;
+  }
+  return '—';
+}
+document.getElementById('todayRecentList').addEventListener('click', e=>{
+  const row = e.target.closest('.list-row'); if(!row) return;
+  openEntryDetail(row.dataset.date);
+});
+document.getElementById('fabEpisode').addEventListener('click', openEpisodeSheet);
+
+// ============================================================
+// DAILY LOG SHEET
+// ============================================================
+function openLogSheet(){
+  const t = todayISO();
+  document.getElementById('logDate').value = t;
+  loadLogFormFrom(entries[t] || {});
+  openOverlay('overlayLog');
+}
+function loadLogFormFrom(e){
+  document.getElementById('bedTime').value = e.bedTime || '';
+  document.getElementById('wakeTime').value = e.wakeTime || '';
+  document.getElementById('sleepQuality').value = e.sleepQuality || 5;
+  document.getElementById('sleepQualityVal').textContent = e.sleepQuality || 5;
+  snoringGroup.set(e.snoring || 'none');
+  document.getElementById('bpSys').value = e.bpSys || '';
+  document.getElementById('bpDia').value = e.bpDia || '';
+  document.getElementById('hr').value = e.hr || '';
+  document.getElementById('spo2').value = e.spo2 || '';
+  headacheSevGroup.set(e.headacheSeverity || 'none');
+  headacheLocGroup.set(e.headacheLocation || []);
+  visualGroup.set(e.visualSymptoms || []);
+  heartGroup.set(e.heartSymptoms || []);
+  document.getElementById('energy').value = e.energy || 5;
+  document.getElementById('energyVal').textContent = e.energy || 5;
+  document.getElementById('stress').value = e.stress || 5;
+  document.getElementById('stressVal').textContent = e.stress || 5;
+  document.getElementById('logNotes').value = e.notes || '';
+}
+document.getElementById('logDate').addEventListener('change', e=>{
+  loadLogFormFrom(entries[e.target.value] || {});
+});
+document.getElementById('saveLog').addEventListener('click', ()=>{
+  const date = document.getElementById('logDate').value;
+  if(!date){ showToast('Pick a date'); return; }
+  entries[date] = {
+    bedTime: document.getElementById('bedTime').value,
+    wakeTime: document.getElementById('wakeTime').value,
+    sleepQuality: parseInt(document.getElementById('sleepQuality').value),
+    snoring: snoringGroup.get()[0] || 'none',
+    bpSys: parseFloat(document.getElementById('bpSys').value) || null,
+    bpDia: parseFloat(document.getElementById('bpDia').value) || null,
+    hr: parseFloat(document.getElementById('hr').value) || null,
+    spo2: parseFloat(document.getElementById('spo2').value) || null,
+    headacheSeverity: headacheSevGroup.get()[0] || 'none',
+    headacheLocation: headacheLocGroup.get(),
+    visualSymptoms: visualGroup.get(),
+    heartSymptoms: heartGroup.get(),
+    energy: parseInt(document.getElementById('energy').value),
+    stress: parseInt(document.getElementById('stress').value),
+    notes: document.getElementById('logNotes').value.trim()
+  };
+  persistEntries();
+  closeOverlay('overlayLog');
+  showToast('Log saved');
+  refreshCurrentView();
+});
+
+// ============================================================
+// EPISODE SHEET
+// ============================================================
+function openEpisodeSheet(){
+  const now = new Date();
+  document.getElementById('epDate').value = todayISO();
+  document.getElementById('epTime').value = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('epDoing').value = '';
+  document.getElementById('epHr').value = '';
+  document.getElementById('epDuration').value = '';
+  epVisionGroup.clear(); epHeadacheGroup.clear(); epTalkGroup.clear();
+  document.getElementById('epNotes').value = '';
+  openOverlay('overlayEpisode');
+}
+document.getElementById('saveEpisode').addEventListener('click', ()=>{
+  const date = document.getElementById('epDate').value;
+  const time = document.getElementById('epTime').value;
+  if(!date || !time){ showToast('Set date and time'); return; }
+  episodes.push({
+    id: uid(),
+    timestamp: date+'T'+time,
+    doing: document.getElementById('epDoing').value.trim(),
+    hr: parseFloat(document.getElementById('epHr').value) || null,
+    duration: parseFloat(document.getElementById('epDuration').value) || null,
+    vision: epVisionGroup.get(),
+    headache: epHeadacheGroup.get()[0] || 'none',
+    couldTalk: epTalkGroup.get()[0] || 'unsure',
+    notes: document.getElementById('epNotes').value.trim()
+  });
+  persistEpisodes();
+  closeOverlay('overlayEpisode');
+  showToast('Episode saved');
+  refreshCurrentView();
+});
+
+// ============================================================
+// HISTORY VIEW
+// ============================================================
+function renderHistory(){
+  const el = document.getElementById('historyList');
+  const items = [];
+  Object.keys(entries).forEach(d=> items.push({type:'entry', date:d, sortKey:d+'T12:00'}));
+  episodes.forEach(ep=> items.push({type:'episode', ep, sortKey:ep.timestamp}));
+  items.sort((a,b)=> b.sortKey.localeCompare(a.sortKey));
+  if(!items.length){
+    el.innerHTML = `<div class="empty-state"><div class="glyph">∿</div><div class="msg">Nothing logged yet.</div></div>`;
+    return;
+  }
+  el.innerHTML = items.map(it=>{
+    if(it.type==='entry'){
+      const e = entries[it.date];
+      return `<div class="list-row" data-kind="entry" data-date="${it.date}">
+        <div class="left"><div class="name">${fmtShortDate(it.date)} · Daily log</div><div class="meta">Sleep ${e.sleepQuality||'—'}/10 · ${e.bpSys?e.bpSys+'/'+e.bpDia:'BP —'} · HR ${e.hr||'—'}</div></div>
+        <div class="right">${sevTag(e.headacheSeverity)}</div>
+      </div>`;
+    }
+    const ep = it.ep;
+    return `<div class="list-row" data-kind="episode" data-id="${ep.id}">
+      <div class="left"><div class="name">${fmtShortDate(ep.timestamp.slice(0,10))} · ⚡ Episode ${ep.timestamp.slice(11,16)}</div><div class="meta">${[ep.doing, ep.vision.join(', ')].filter(Boolean).join(' · ')||'No detail'}</div></div>
+      <div class="right">${sevTag(ep.headache)}</div>
+    </div>`;
+  }).join('');
+}
+document.getElementById('historyList').addEventListener('click', e=>{
+  const row = e.target.closest('.list-row'); if(!row) return;
+  if(row.dataset.kind==='entry') openEntryDetail(row.dataset.date);
+  else openEpisodeDetail(row.dataset.id);
+});
+
+function openEntryDetail(date){
+  const e = entries[date]; if(!e) return;
+  document.getElementById('detailTitle').textContent = fmtDateFull(date);
+  document.getElementById('detailBody').innerHTML = `
+    <div class="field-hint" style="margin-bottom:16px;">Sleep ${e.bedTime||'—'} – ${e.wakeTime||'—'} · Quality ${e.sleepQuality||'—'}/10 · Snoring: ${e.snoring||'none'}</div>
+    <div class="field-hint" style="margin-bottom:16px;">BP ${e.bpSys&&e.bpDia?e.bpSys+'/'+e.bpDia:'—'} · HR ${e.hr||'—'} · SpO₂ ${e.spo2||'—'}%</div>
+    <div class="field-hint" style="margin-bottom:16px;">Headache: ${e.headacheSeverity||'none'}${e.headacheLocation&&e.headacheLocation.length?' ('+e.headacheLocation.join(', ')+')':''}</div>
+    <div class="field-hint" style="margin-bottom:16px;">Visual/wave: ${e.visualSymptoms&&e.visualSymptoms.length?e.visualSymptoms.join(', '):'none'}</div>
+    <div class="field-hint" style="margin-bottom:16px;">Heart: ${e.heartSymptoms&&e.heartSymptoms.length?e.heartSymptoms.join(', '):'none'}</div>
+    <div class="field-hint" style="margin-bottom:16px;">Energy ${e.energy||'—'}/10 · Stress ${e.stress||'—'}/10</div>
+    ${e.notes?`<div class="field-hint" style="margin-bottom:16px;">Notes: ${e.notes}</div>`:''}
+    <button class="btn btn-secondary btn-block" id="detailEditBtn">Edit this entry</button>`;
+  document.getElementById('detailEditBtn').addEventListener('click', ()=>{
+    closeOverlay('overlayDetail'); document.getElementById('logDate').value=date; loadLogFormFrom(e); openOverlay('overlayLog');
+  });
+  openOverlay('overlayDetail');
+}
+function openEpisodeDetail(id){
+  const ep = episodes.find(x=>x.id===id); if(!ep) return;
+  document.getElementById('detailTitle').textContent = fmtDateFull(ep.timestamp.slice(0,10))+' · '+ep.timestamp.slice(11,16);
+  document.getElementById('detailBody').innerHTML = `
+    <div class="field-hint" style="margin-bottom:16px;">Doing: ${ep.doing||'—'}</div>
+    <div class="field-hint" style="margin-bottom:16px;">Heart rate: ${ep.hr||'—'} · Duration: ${ep.duration?ep.duration+' min':'—'}</div>
+    <div class="field-hint" style="margin-bottom:16px;">Vision: ${ep.vision&&ep.vision.length?ep.vision.join(', '):'—'}</div>
+    <div class="field-hint" style="margin-bottom:16px;">Headache: ${ep.headache||'none'}</div>
+    <div class="field-hint" style="margin-bottom:16px;">Could talk normally: ${ep.couldTalk||'—'}</div>
+    ${ep.notes?`<div class="field-hint" style="margin-bottom:16px;">Notes: ${ep.notes}</div>`:''}
+    <button class="btn btn-secondary btn-block" id="detailDeleteBtn">Delete this episode</button>`;
+  document.getElementById('detailDeleteBtn').addEventListener('click', ()=>{
+    if(!confirm('Delete this episode entry?')) return;
+    episodes = episodes.filter(x=>x.id!==id);
+    persistEpisodes();
+    closeOverlay('overlayDetail');
+    showToast('Episode deleted');
+    refreshCurrentView();
+  });
+  openOverlay('overlayDetail');
+}
+
+// ============================================================
+// TRENDS — lightweight hand-rolled SVG charts
+// ============================================================
+function svgLineChart(points, opts){
+  // points: array of {x:index, y:value|null}, opts:{width,height,max,min,color}
+  const w = opts.width||320, h = opts.height||90, max = opts.max, min = opts.min||0;
+  const valid = points.filter(p=>p.y!==null && p.y!==undefined);
+  if(!valid.length) return `<div class="field-hint">Not enough data yet.</div>`;
+  const n = points.length;
+  const stepX = n>1 ? w/(n-1) : w;
+  const scaleY = y => h - ((y-min)/(max-min||1))*h;
+  let path = ''; let started=false;
+  points.forEach((p,i)=>{
+    if(p.y===null||p.y===undefined){ started=false; return; }
+    const x = i*stepX, y = scaleY(p.y);
+    path += (started?' L':' M')+x.toFixed(1)+' '+y.toFixed(1);
+    started=true;
+  });
+  const dots = points.map((p,i)=> (p.y===null||p.y===undefined) ? '' : `<circle cx="${(i*stepX).toFixed(1)}" cy="${scaleY(p.y).toFixed(1)}" r="2.6" fill="${opts.color||'var(--forest)'}"/>`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" style="overflow:visible;">
+    <path d="${path}" fill="none" stroke="${opts.color||'var(--forest)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    ${dots}
+  </svg>`;
+}
+function svgBarChart(points, opts){
+  const w = opts.width||320, h = opts.height||90, max = opts.max||1;
+  const n = points.length; if(!n) return `<div class="field-hint">Not enough data yet.</div>`;
+  const gap = 2, bw = (w/n)-gap;
+  const bars = points.map((p,i)=>{
+    const bh = max>0 ? (p.y/max)*h : 0;
+    const x = i*(bw+gap);
+    return `<rect x="${x.toFixed(1)}" y="${(h-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="1.5" fill="${p.color||opts.color||'var(--forest)'}"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none">${bars}</svg>`;
+}
+function lastNDates(n){ const arr=[]; for(let i=n-1;i>=0;i--) arr.push(daysAgo(i)); return arr; }
+
+function renderTrends(){
+  const days30 = lastNDates(30);
+
+  // Sleep quality line
+  const sleepPts = days30.map((d,i)=>({x:i, y: entries[d] ? entries[d].sleepQuality : null}));
+  document.getElementById('chartSleep').innerHTML = svgLineChart(sleepPts, {max:10,min:0,height:80}) +
+    `<div class="field-hint" style="margin-top:6px; margin-bottom:0;">${fmtShortDate(days30[0])} → ${fmtShortDate(days30[days30.length-1])}</div>`;
+
+  // Headache severity bar (0/1/2/3)
+  const sevNum = s => ({none:0,mild:1,moderate:2,severe:3}[s]||0);
+  const headPts = days30.map(d=>({y: entries[d] ? sevNum(entries[d].headacheSeverity) : 0, color: entries[d]&&entries[d].headacheSeverity==='severe'?'var(--brick)':entries[d]&&entries[d].headacheSeverity==='moderate'?'var(--amber)':'var(--forest)'}));
+  document.getElementById('chartHeadache').innerHTML = svgBarChart(headPts, {max:3,height:80}) +
+    `<div class="field-hint" style="margin-top:6px; margin-bottom:0;">Bar height = severity (none → severe)</div>`;
+
+  // BP/HR
+  const bpPts = days30.map((d,i)=>({x:i, y: entries[d] ? entries[d].bpSys : null}));
+  const hrPts = days30.map((d,i)=>({x:i, y: entries[d] ? entries[d].hr : null}));
+  const bpVals = bpPts.filter(p=>p.y).map(p=>p.y), hrVals = hrPts.filter(p=>p.y).map(p=>p.y);
+  const allVals = [...bpVals,...hrVals];
+  if(allVals.length){
+    const max = Math.max(...allVals)+10, min = Math.max(0, Math.min(...allVals)-10);
+    document.getElementById('chartVitals').innerHTML =
+      `<div style="display:flex; gap:14px; font-size:11.5px; margin-bottom:6px;"><span style="color:var(--forest);">● BP systolic</span><span style="color:var(--amber);">● Heart rate</span></div>` +
+      svgLineChart(bpPts,{max,min,height:80,color:'var(--forest)'}) +
+      `<div style="margin-top:-80px; margin-bottom:6px; opacity:.9;">${svgLineChart(hrPts,{max,min,height:80,color:'var(--amber)'})}</div>`;
+  } else {
+    document.getElementById('chartVitals').innerHTML = `<div class="field-hint">No BP/HR logged in the last 30 days.</div>`;
+  }
+
+  // Episodes over 90 days, weekly buckets
+  const days90 = lastNDates(90);
+  const weeks = [];
+  for(let i=0;i<days90.length;i+=7){ weeks.push(days90.slice(i,i+7)); }
+  const epPts = weeks.map(week=>({y: episodes.filter(ep=> week.includes(ep.timestamp.slice(0,10))).length}));
+  const maxEp = Math.max(1, ...epPts.map(p=>p.y));
+  document.getElementById('chartEpisodes').innerHTML = svgBarChart(epPts,{max:maxEp,height:70,color:'var(--brick)'}) +
+    `<div class="field-hint" style="margin-top:6px; margin-bottom:0;">${weeks.length} weeks, oldest → newest</div>`;
+
+  renderInsights(days30);
+}
+
+function renderInsights(days30){
+  const el = document.getElementById('insightsList');
+  const rows = [];
+
+  // Poor sleep -> next day headache
+  let poorSleepNights=0, poorSleepThenHeadache=0, goodSleepNights=0, goodSleepThenHeadache=0;
+  for(let i=0;i<days30.length-1;i++){
+    const d = days30[i], next = days30[i+1];
+    const e = entries[d], en = entries[next];
+    if(!e || e.sleepQuality==null) continue;
+    const hadHeadache = en && en.headacheSeverity && en.headacheSeverity!=='none';
+    if(e.sleepQuality<=4){ poorSleepNights++; if(hadHeadache) poorSleepThenHeadache++; }
+    if(e.sleepQuality>=7){ goodSleepNights++; if(hadHeadache) goodSleepThenHeadache++; }
+  }
+  if(poorSleepNights>=3){
+    rows.push(`Headache the day after poor sleep (quality ≤4): <b>${poorSleepThenHeadache}/${poorSleepNights}</b> nights (${Math.round(poorSleepThenHeadache/poorSleepNights*100)}%)${goodSleepNights>=3?`, vs <b>${goodSleepThenHeadache}/${goodSleepNights}</b> after good sleep (≥7)`:''}.`);
+  }
+
+  // Snoring severity vs headache next day
+  let snoreNights=0, snoreThenHeadache=0;
+  for(let i=0;i<days30.length-1;i++){
+    const e = entries[days30[i]], en = entries[days30[i+1]];
+    if(!e || !e.snoring || e.snoring==='none') continue;
+    snoreNights++;
+    if(en && en.headacheSeverity && en.headacheSeverity!=='none') snoreThenHeadache++;
+  }
+  if(snoreNights>=3){
+    rows.push(`Headache the day after a snoring night: <b>${snoreThenHeadache}/${snoreNights}</b> (${Math.round(snoreThenHeadache/snoreNights*100)}%).`);
+  }
+
+  // Episodes preceded by poor sleep the night before
+  const epByDate = {};
+  episodes.forEach(ep=>{ const d=ep.timestamp.slice(0,10); epByDate[d]=(epByDate[d]||0)+1; });
+  let epTotal = episodes.length, epAfterPoorSleep=0, epChecked=0;
+  episodes.forEach(ep=>{
+    const d = ep.timestamp.slice(0,10);
+    const prevDate = new Date(d+'T00:00:00'); prevDate.setDate(prevDate.getDate()-1);
+    const prevIso = prevDate.getFullYear()+'-'+String(prevDate.getMonth()+1).padStart(2,'0')+'-'+String(prevDate.getDate()).padStart(2,'0');
+    const pe = entries[prevIso];
+    if(pe && pe.sleepQuality!=null){ epChecked++; if(pe.sleepQuality<=4) epAfterPoorSleep++; }
+  });
+  if(epChecked>=2){
+    rows.push(`Episodes following a poor-sleep night (quality ≤4): <b>${epAfterPoorSleep}/${epChecked}</b> checked episodes.`);
+  }
+
+  // Most common headache location
+  const locCount = {};
+  days30.forEach(d=>{ const e=entries[d]; if(e&&e.headacheLocation) e.headacheLocation.forEach(l=> locCount[l]=(locCount[l]||0)+1); });
+  const topLoc = Object.entries(locCount).sort((a,b)=>b[1]-a[1])[0];
+  if(topLoc && topLoc[1]>=2){
+    rows.push(`Most frequent headache location this month: <b>${topLoc[0]}</b> (${topLoc[1]} days).`);
+  }
+
+  el.innerHTML = rows.length ? rows.map(r=>`<div style="font-size:13.5px; padding:8px 0; border-bottom:1px solid var(--line);">${r}</div>`).join('') :
+    `<div class="field-hint" style="margin-bottom:0;">Keep logging — patterns need a couple of weeks of data to show up.</div>`;
+}
+
+// ============================================================
+// REPORT
+// ============================================================
+document.getElementById('repFrom').value = daysAgo(30);
+document.getElementById('repTo').value = todayISO();
+
+function buildReport(){
+  const from = document.getElementById('repFrom').value;
+  const to = document.getElementById('repTo').value;
+  if(!from || !to){ showToast('Pick both dates'); return; }
+  const dates = Object.keys(entries).filter(d=> d>=from && d<=to).sort();
+  const eps = episodes.filter(ep=> ep.timestamp.slice(0,10)>=from && ep.timestamp.slice(0,10)<=to)
+    .sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
+
+  const sleepVals = dates.map(d=>entries[d].sleepQuality).filter(v=>v!=null);
+  const avgSleep = sleepVals.length ? (sleepVals.reduce((a,b)=>a+b,0)/sleepVals.length).toFixed(1) : '—';
+  const bpVals = dates.map(d=>entries[d]).filter(e=>e.bpSys);
+  const avgSys = bpVals.length ? Math.round(bpVals.reduce((a,e)=>a+e.bpSys,0)/bpVals.length) : '—';
+  const avgDia = bpVals.length ? Math.round(bpVals.reduce((a,e)=>a+e.bpDia,0)/bpVals.length) : '—';
+  const hrVals = dates.map(d=>entries[d]).filter(e=>e.hr).map(e=>e.hr);
+  const avgHr = hrVals.length ? Math.round(hrVals.reduce((a,b)=>a+b,0)/hrVals.length) : '—';
+  const headacheDays = dates.filter(d=>entries[d].headacheSeverity && entries[d].headacheSeverity!=='none');
+  const severeDays = dates.filter(d=>entries[d].headacheSeverity==='severe');
+  const snoreDays = dates.filter(d=>entries[d].snoring && entries[d].snoring!=='none');
+
+  const out = document.getElementById('reportOutput');
+  out.innerHTML = `
+    <div class="card">
+      <div class="card-eyebrow">Summary — ${fmtShortDate(from)} to ${fmtShortDate(to)}</div>
+      <div class="card-title" style="margin-bottom:10px;">Health log report</div>
+      <div style="font-size:13.5px; line-height:1.9;">
+        Days logged: <b>${dates.length}</b><br>
+        Average sleep quality: <b>${avgSleep}/10</b><br>
+        Average BP: <b>${avgSys}/${avgDia}</b> · Average HR: <b>${avgHr} bpm</b><br>
+        Headache days: <b>${headacheDays.length}</b> (${severeDays.length} severe)<br>
+        Snoring nights: <b>${snoreDays.length}</b><br>
+        Episodes: <b>${eps.length}</b>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Episodes in range</div>
+      ${eps.length ? eps.map(ep=>`
+        <div style="font-size:13px; padding:9px 0; border-bottom:1px solid var(--line);">
+          <b>${fmtShortDate(ep.timestamp.slice(0,10))} ${ep.timestamp.slice(11,16)}</b> —
+          ${[ep.doing, ep.duration?ep.duration+' min':null, ep.vision&&ep.vision.length?ep.vision.join('/'):null, ep.headache&&ep.headache!=='none'?'headache: '+ep.headache:null, ep.couldTalk==='no'?'could not talk normally':null].filter(Boolean).join(' · ')}
+        </div>`).join('') : `<div class="field-hint" style="margin-bottom:0;">No episodes in this range.</div>`}
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Daily entries</div>
+      <div style="max-height:340px; overflow-y:auto;">
+      ${dates.length ? dates.map(d=>{
+        const e = entries[d];
+        return `<div style="font-size:12.5px; padding:8px 0; border-bottom:1px solid var(--line);">
+          <b>${fmtShortDate(d)}</b> — Sleep ${e.sleepQuality||'—'}/10 (${e.snoring||'none'} snoring) · BP ${e.bpSys?e.bpSys+'/'+e.bpDia:'—'} · HR ${e.hr||'—'} ·
+          Headache ${e.headacheSeverity||'none'}${e.headacheLocation&&e.headacheLocation.length?' ('+e.headacheLocation.join(', ')+')':''} ·
+          ${e.visualSymptoms&&e.visualSymptoms.length?'Visual: '+e.visualSymptoms.join(', ')+' · ':''}${e.heartSymptoms&&e.heartSymptoms.length?'Heart: '+e.heartSymptoms.join(', '):''}
+        </div>`;
+      }).join('') : `<div class="field-hint" style="margin-bottom:0;">No daily entries in this range.</div>`}
+      </div>
+    </div>`;
+  window._lastReport = {from,to,dates,eps,avgSleep,avgSys,avgDia,avgHr,headacheDays,severeDays,snoreDays};
+}
+document.getElementById('repBuild').addEventListener('click', buildReport);
+document.getElementById('repPrint').addEventListener('click', ()=>{
+  if(!window._lastReport) buildReport();
+  document.getElementById('view-report').classList.add('print-active');
+  window.print();
+});
+document.getElementById('repShare').addEventListener('click', ()=>{
+  if(!window._lastReport) buildReport();
+  const r = window._lastReport;
+  let txt = `Health Log Summary\n${fmtShortDate(r.from)} – ${fmtShortDate(r.to)}\n${'─'.repeat(28)}\n`;
+  txt += `Days logged: ${r.dates.length}\nAvg sleep quality: ${r.avgSleep}/10\nAvg BP: ${r.avgSys}/${r.avgDia}\nAvg HR: ${r.avgHr} bpm\nHeadache days: ${r.headacheDays.length} (${r.severeDays.length} severe)\nSnoring nights: ${r.snoreDays.length}\nEpisodes: ${r.eps.length}\n\n`;
+  if(r.eps.length){
+    txt += `EPISODES:\n`;
+    r.eps.forEach(ep=>{
+      txt += `${fmtShortDate(ep.timestamp.slice(0,10))} ${ep.timestamp.slice(11,16)} — ${[ep.doing, ep.duration?ep.duration+' min':null, ep.vision&&ep.vision.length?ep.vision.join('/'):null].filter(Boolean).join(', ')}\n`;
+    });
+  }
+  navigator.clipboard.writeText(txt).then(()=> showToast('Summary copied')).catch(()=> showToast('Could not copy — try Print instead'));
+});
+
+// ============================================================
+// SETTINGS
+// ============================================================
+document.getElementById('reminderChips').addEventListener('click', ()=>{
+  const on = reminderGroup.get()[0]==='on';
+  document.getElementById('reminderTimeField').style.display = on ? 'block' : 'none';
+  if(on && 'Notification' in window && Notification.permission==='default'){
+    Notification.requestPermission();
+  }
+  settings.reminderOn = on;
+  settings.reminderTime = document.getElementById('reminderTime').value;
+  persistSettings();
+});
+document.getElementById('reminderTime').addEventListener('change', e=>{
+  settings.reminderTime = e.target.value;
+  persistSettings();
+});
+document.getElementById('exportData').addEventListener('click', ()=>{
+  const payload = { entries, episodes, settings, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'signal-backup-'+todayISO()+'.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Backup downloaded');
+});
+document.getElementById('wipeData').addEventListener('click', ()=>{
+  if(!confirm('This deletes every log and episode from this device. Are you sure?')) return;
+  if(!confirm('Really sure? This cannot be undone.')) return;
+  entries = {}; episodes = [];
+  persistEntries(); persistEpisodes();
+  showToast('All data erased');
+  refreshCurrentView();
+});
+
+function checkReminder(){
+  if(!settings.reminderOn) return;
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  const t = todayISO();
+  if(entries[t]) return;
+  if(settings.lastReminderDate===t) return;
+  const now = new Date();
+  const [rh,rm] = (settings.reminderTime||'19:00').split(':').map(Number);
+  if(now.getHours()>rh || (now.getHours()===rh && now.getMinutes()>=rm)){
+    new Notification('Signal', { body: "You haven't logged today yet — takes under a minute." });
+    settings.lastReminderDate = t;
+    persistSettings();
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function refreshCurrentView(){
+  const active = views.find(v=> document.getElementById('view-'+v).classList.contains('active'));
+  showView(active || 'today');
+}
+document.getElementById('epDate').value = todayISO();
+renderToday();
+checkReminder();
+</script>
+</body>
+</html>
